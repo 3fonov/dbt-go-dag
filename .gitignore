@@ -1,0 +1,44 @@
+tmp/
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Output of the go build command
+/build/
+/bin/
+/out/
+
+# Go dependencies
+/vendor/
+
+# Test binary
+*.test
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage files
+coverage.out
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+*.swp
+
+# Go workspace file
+go.work
+go.work.sum
+
+dbt-go-dag
