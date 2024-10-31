@@ -75,6 +75,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to execute template: %v", err)
 		}
+		os.Exit(0)
 	})
 	http.HandleFunc("/er", func(w http.ResponseWriter, r *http.Request) {
 		data := manifest.CreateMermaidERGraph()
