@@ -98,7 +98,7 @@ func (m *WritableManifest) SourcesToMermaidFC(b *strings.Builder) {
 		}
 		b.WriteString("    end\n")
 		b.WriteString(
-			fmt.Sprintf("    style %v fill:#FFF1E6,stroke:#333,stroke-width:4px\n", name),
+			fmt.Sprintf("    style %v fill:#FFF1E6,stroke:#333,stroke-width:1px\n", name),
 		)
 	}
 }
