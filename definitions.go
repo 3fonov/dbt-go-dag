@@ -80,7 +80,6 @@ type NodeConfig struct {
 	Quoting             map[string]interface{} `json:"quoting"`
 	ColumnTypes         map[string]string      `json:"column_types"`
 	FullRefresh         *bool                  `json:"full_refresh,omitempty"`
-	UniqueKey           []string               `json:"unique_key,omitempty"`
 	OnSchemaChange      *string                `json:"on_schema_change,omitempty"`
 	Grants              map[string]string      `json:"grants"`
 	Packages            []string               `json:"packages"`
