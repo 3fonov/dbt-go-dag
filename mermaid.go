@@ -122,13 +122,10 @@ func (n *Node) ModelToMermaidFC(b *strings.Builder, tests map[string]bool) {
 	id := ToMermaidId(n.UniqueID)
 	modelName := n.Name
 	modelClass := "model"
-	if _, exists := tests[id]; exists {
-		modelName = fmt.Sprintf("fa:fa-check-double %v", modelName)
-	} else {
+	if _, exists := tests[id]; !exists {
 		modelClass = "modelError"
 	}
 	if n.Config.Materialized == "ephemeral" {
-		modelName = fmt.Sprintf("fa:fa-ghost %v", modelName)
 		modelClass = "modelEphemeral"
 	} else if n.Config.Materialized == "incremental" {
 		modelName = fmt.Sprintf("fa:fa-layer-group %v", modelName)
@@ -139,7 +136,7 @@ func (n *Node) ModelToMermaidFC(b *strings.Builder, tests map[string]bool) {
 
 		modelClass = "modelProduct"
 		b.WriteString(
-			fmt.Sprintf("    %v[%v fa:fa-box-open]:::%v", id, modelName, modelClass),
+			fmt.Sprintf("    %v[%v]:::%v", id, modelName, modelClass),
 		)
 	} else {
 		b.WriteString(fmt.Sprintf("    %v([%v]):::%v", id, modelName, modelClass))
