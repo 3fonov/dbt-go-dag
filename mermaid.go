@@ -84,7 +84,6 @@ func (m *WritableManifest) SourcesToMermaidFC(b *strings.Builder) {
 
 	sourceGroups := make(map[string][]Source)
 	for _, s := range m.Sources {
-		fmt.Printf("%v %v\n", s.SourceName, s.Name)
 		if _, exists := sourceGroups[s.SourceName]; exists {
 			sourceGroups[s.SourceName] = append(sourceGroups[s.SourceName], s)
 		} else {

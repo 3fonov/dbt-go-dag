@@ -1,12 +1,16 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 )
+
+//go:embed index.html
+var indexHTML string
 
 func main() {
 	filePath := "target/manifest.json"
@@ -33,7 +37,7 @@ func main() {
 		data := manifest.CreateMermaidFCGraph()
 
 		// Parse the HTML template from the file
-		tmpl, err := template.ParseFiles("index.html")
+		tmpl, err := template.New("index").Parse(indexHTML)
 		if err != nil {
 			log.Fatalf("Failed to parse template file: %v", err)
 		}
