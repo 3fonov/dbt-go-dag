@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	filePath := "../target/manifest.json"
+	filePath := "target/manifest.json"
 	// Check if the correct number of arguments is provided
 	if len(os.Args) == 2 {
 		filePath = os.Args[1]
@@ -32,7 +32,6 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		data := manifest.CreateMermaidFCGraph()
 
-		log.Print(data)
 		// Parse the HTML template from the file
 		tmpl, err := template.ParseFiles("index.html")
 		if err != nil {
