@@ -7,10 +7,31 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"runtime"
 )
 
 //go:embed index.html
 var indexHTML string
+
+func openBrowser(url string) {
+	var err error
+
+	switch runtime.GOOS {
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	default:
+		log.Print("unsupported platform")
+	}
+
+	if err != nil {
+		log.Printf("Failed to open browser: %v\n", err)
+	}
+}
 
 func main() {
 	filePath := "target/manifest.json"
@@ -81,5 +102,6 @@ func main() {
 
 	// Start the server
 	log.Println("Starting server on :8080")
+	openBrowser("http://127.0.0.1:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
