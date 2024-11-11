@@ -73,11 +73,35 @@ func (m *WritableManifest) LinksToMermaidFC(b *strings.Builder) {
 	}
 }
 func (m *WritableManifest) ModelsToMermaidFC(b *strings.Builder, tests map[string]bool) {
+	modelGroups := make(map[string][]Node)
 	for _, n := range m.Nodes {
 		if n.ResourceType != "model" {
 			continue
 		}
-		n.ModelToMermaidFC(b, tests)
+		groupName := n.GroupName()
+		if _, exists := modelGroups[groupName]; exists {
+			modelGroups[groupName] = append(modelGroups[groupName], n)
+		} else {
+			modelGroups[groupName] = []Node{n}
+		}
+	}
+
+	for name, nodes := range modelGroups {
+		if name == "-" {
+			for _, n := range nodes {
+				n.ModelToMermaidFC(b, tests)
+			}
+		} else {
+			b.WriteString(fmt.Sprintf("    subgraph %v\n", name))
+			for _, n := range nodes {
+				n.ModelToMermaidFC(b, tests)
+			}
+			b.WriteString("    end\n")
+			color := GetStringColor(name)
+			b.WriteString(
+				fmt.Sprintf("    style %v fill:%v,stroke:#333,stroke-width:1px\n", name, color),
+			)
+		}
 	}
 }
 func (m *WritableManifest) SourcesToMermaidFC(b *strings.Builder) {
@@ -151,52 +175,18 @@ func (n *Node) RefsToMermaidFC(b *strings.Builder) {
 		)
 	}
 }
-func (m *WritableManifest) CreateMermaidERGraph() string {
-	var builder strings.Builder
-	builder.WriteString("erDiagram\n")
-	for _, n := range m.Nodes {
-		if n.ResourceType != "model" {
-			continue
+func (n *Node) GroupName() string {
+	groupPrefix := "group:"
+	for _, t := range n.Config.Tags {
+		if strings.HasPrefix(t, groupPrefix) {
+			return strings.TrimSpace(
+				strings.TrimPrefix(t, groupPrefix),
+			)
 		}
-		n.ToMermaidER(&builder)
+
 	}
-	return builder.String()
-}
-func (n *Node) ToMermaidER(b *strings.Builder) {
-	id := ToMermaidId(n.UniqueID)
-	b.WriteString(fmt.Sprintf("    %v[%v]", id, n.Name))
-	n.ColumnsToMermaidER(b)
-	b.WriteString("\n")
-	n.RefsToMermaidER(b)
+	return "-"
 }
 func ToMermaidId(s string) string {
 	return strings.Replace(s, ".", "_", -1)
-}
-func (n *Node) RefsToMermaidER(b *strings.Builder) {
-	for _, d := range n.DependsOn.Nodes {
-		b.WriteString("        ")
-		b.WriteString(
-			fmt.Sprintf("%v }o--o{ %v: \"\"\n", ToMermaidId(d), ToMermaidId(n.UniqueID)),
-		)
-	}
-}
-func (n *Node) ColumnsToMermaidER(b *strings.Builder) {
-	if len(n.Columns) > 0 {
-		b.WriteString(" {\n")
-		for _, c := range n.Columns {
-			c.ToMermaidER(b)
-		}
-		b.WriteString("}")
-	}
-}
-
-func (c *ColumnInfo) ToMermaidER(b *strings.Builder) {
-	b.WriteString("        ")
-	if c.DataType == nil {
-		b.WriteString("unknown ")
-	} else {
-		b.WriteString(fmt.Sprintf("%v ", *c.DataType))
-	}
-	b.WriteString(fmt.Sprintf("%v", c.Name))
-	b.WriteString("\n")
 }

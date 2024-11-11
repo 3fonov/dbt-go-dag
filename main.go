@@ -80,29 +80,6 @@ func main() {
 			os.Exit(0)
 		})
 	})
-	http.HandleFunc("/er", func(w http.ResponseWriter, r *http.Request) {
-		data := manifest.CreateMermaidERGraph()
-
-		log.Print(data)
-		// Parse the HTML template from the file
-		tmpl, err := template.ParseFiles("index.html")
-		if err != nil {
-			log.Fatalf("Failed to parse template file: %v", err)
-		}
-
-		// Prepare the template data
-		templateData := struct {
-			Data string
-		}{
-			Data: data, // Safely insert JSON into the <script> tag
-		}
-
-		// Render the template with the data
-		err = tmpl.Execute(w, templateData)
-		if err != nil {
-			log.Fatalf("Failed to execute template: %v", err)
-		}
-	})
 
 	// Start the server
 	log.Println("Starting server on :8080")
