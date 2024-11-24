@@ -20,6 +20,7 @@ func (m *WritableManifest) CreateMermaidFCGraph() string {
 		"     classDef modelError fill:#E93577,stroke:#370618,color:#fefefe\n",
 	)
 	builder.WriteString("     classDef modelProduct fill:#DFE7FD\n")
+	builder.WriteString("     classDef modelProductError fill:#E93577,color:#FEFEFE\n")
 	builder.WriteString("     classDef exposure fill:#FFF1E6\n")
 	builder.WriteString(
 		"     classDef modelEphemeral fill:#fafafa,stroke-width:1px,stroke:#cdcdcd\n",
@@ -158,7 +159,11 @@ func (n *Node) ModelToMermaidFC(b *strings.Builder, tests map[string]bool) {
 	}
 	if n.IsProductNode() {
 
-		modelClass = "modelProduct"
+		if modelClass == "modelError" {
+			modelClass = "modelProductError"
+		} else {
+			modelClass = "modelProduct"
+		}
 		b.WriteString(
 			fmt.Sprintf("    %v[%v]:::%v", id, modelName, modelClass),
 		)
