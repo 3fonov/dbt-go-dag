@@ -120,7 +120,7 @@ func (m *WritableManifest) SourcesToMermaidFC(b *strings.Builder) {
 	}
 	for name, sources := range sourceGroups {
 
-		b.WriteString(fmt.Sprintf("    subgraph %v\n", name))
+		b.WriteString(fmt.Sprintf("    subgraph %v_[%v]\n", name))
 		var sourceNameList []string
 
 		for _, s := range sources {
