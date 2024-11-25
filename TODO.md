@@ -1,1 +1,2 @@
-- [ ] make something
+- [ ] Show tags inside models
+- [ ] Show descriptions inside models
