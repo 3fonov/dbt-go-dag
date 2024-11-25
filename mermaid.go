@@ -127,7 +127,6 @@ func (m *WritableManifest) SourcesToMermaidFC(b *strings.Builder) {
 			sourceNameList = append(sourceNameList, s.Name)
 		}
 		sourceMap := CollapseStrings(sourceNameList)
-		fmt.Println(sourceMap)
 		for _, s := range sources {
 			s.SourceToMermaidFC(b, sourceMap)
 		}
@@ -141,7 +140,6 @@ func (s *Source) SourceToMermaidFC(b *strings.Builder, sm map[string]string) {
 	id := ToMermaidId(s.UniqueID)
 	name := s.Name
 	if cName, ok := sm[s.Name]; ok {
-		fmt.Println(cName)
 		id = ToMermaidId(cName)
 		idDict[s.UniqueID] = id
 		name = cName
