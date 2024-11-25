@@ -5,7 +5,10 @@ import (
 	"strings"
 )
 
+var idDict map[string]string
+
 func (m *WritableManifest) CreateMermaidFCGraph() string {
+	idDict = make(map[string]string, 0)
 	var builder strings.Builder
 	builder.WriteString(
 		"%%{init: {'flowchart': {'defaultRenderer': 'elk', 'curve':'step' }} }%%\n",
@@ -118,8 +121,15 @@ func (m *WritableManifest) SourcesToMermaidFC(b *strings.Builder) {
 	for name, sources := range sourceGroups {
 
 		b.WriteString(fmt.Sprintf("    subgraph %v\n", name))
+		var sourceNameList []string
+
 		for _, s := range sources {
-			s.SourceToMermaidFC(b)
+			sourceNameList = append(sourceNameList, s.Name)
+		}
+		sourceMap := CollapseStrings(sourceNameList)
+		fmt.Println(sourceMap)
+		for _, s := range sources {
+			s.SourceToMermaidFC(b, sourceMap)
 		}
 		b.WriteString("    end\n")
 		b.WriteString(
@@ -127,9 +137,16 @@ func (m *WritableManifest) SourcesToMermaidFC(b *strings.Builder) {
 		)
 	}
 }
-func (s *Source) SourceToMermaidFC(b *strings.Builder) {
+func (s *Source) SourceToMermaidFC(b *strings.Builder, sm map[string]string) {
 	id := ToMermaidId(s.UniqueID)
-	b.WriteString(fmt.Sprintf("        %v>%v]:::source", id, s.Name))
+	name := s.Name
+	if cName, ok := sm[s.Name]; ok {
+		fmt.Println(cName)
+		id = ToMermaidId(cName)
+		idDict[s.UniqueID] = id
+		name = cName
+	}
+	b.WriteString(fmt.Sprintf("        %v>%v]:::source", id, name))
 	b.WriteString("\n")
 }
 func (n *Node) IsProductNode() bool {
@@ -173,10 +190,20 @@ func (n *Node) ModelToMermaidFC(b *strings.Builder, tests map[string]bool) {
 	b.WriteString("\n")
 }
 func (n *Node) RefsToMermaidFC(b *strings.Builder) {
+	visited := make(map[string]interface{})
 	for _, d := range n.DependsOn.Nodes {
+		sourceId := d
+		if cId, ok := idDict[sourceId]; ok {
+			sourceId = cId
+		}
+		if _, vis := visited[sourceId]; vis {
+
+			continue
+		}
+		visited[sourceId] = sourceId
 		b.WriteString("        ")
 		b.WriteString(
-			fmt.Sprintf("%v --> %v\n", ToMermaidId(d), ToMermaidId(n.UniqueID)),
+			fmt.Sprintf("%v --> %v\n", ToMermaidId(sourceId), ToMermaidId(n.UniqueID)),
 		)
 	}
 }
@@ -193,5 +220,10 @@ func (n *Node) GroupName() string {
 	return "-"
 }
 func ToMermaidId(s string) string {
-	return strings.Replace(s, ".", "_", -1)
+	s = strings.Replace(s, ".", "_", -1)
+	s = strings.Replace(s, "(", "_", -1)
+	s = strings.Replace(s, ")", "_", -1)
+	s = strings.Replace(s, "\"", "_", -1)
+	return s
+
 }

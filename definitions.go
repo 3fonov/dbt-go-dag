@@ -5,6 +5,7 @@ type WritableManifest struct {
 	Nodes     map[string]Node     `json:"nodes"`
 	Sources   map[string]Source   `json:"sources"`
 	Exposures map[string]Exposure `json:"exposures"`
+	sourceMap map[string]string
 }
 
 type ManifestMetadata struct {

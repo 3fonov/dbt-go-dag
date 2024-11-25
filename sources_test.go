@@ -16,7 +16,7 @@ func TestGroupping(t *testing.T) {
 		"12345", "def",
 		"123",
 	}
-	result := GroupStrings(input, 4)
+	result := CollapseStrings(input)
 	assert.NotNil(t, result)
 
 	expected := map[string][]string{

@@ -63,7 +63,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to parse template file: %v", err)
 		}
-
+		log.Print(data)
 		// Prepare the template data
 		templateData := struct {
 			Data string
