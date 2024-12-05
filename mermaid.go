@@ -6,13 +6,19 @@ import (
 )
 
 var idDict map[string]string
+var exclusions map[string]struct{}
 
 func (m *WritableManifest) CreateMermaidFCGraph() string {
+	exclusions = map[string]struct{}{
+		"dbt_project_evaluator": {},
+		"skip":                  {},
+	}
+
 	idDict = make(map[string]string, 0)
 	var builder strings.Builder
-	builder.WriteString(
-		"%%{init: {'flowchart': {'defaultRenderer': 'elk', 'curve':'step' }} }%%\n",
-	)
+	// builder.WriteString(
+	// 	"%%{init: {'flowchart': {'defaultRenderer': 'elk', 'curve':'step' }} }%%\n",
+	// )
 	builder.WriteString("flowchart LR\n")
 	builder.WriteString(
 		"     classDef default stroke:#383D3B,stroke-width:2px,text-align:left,white-space:nowrap;\n",
@@ -79,7 +85,7 @@ func (m *WritableManifest) LinksToMermaidFC(b *strings.Builder) {
 func (m *WritableManifest) ModelsToMermaidFC(b *strings.Builder, tests map[string]bool) {
 	modelGroups := make(map[string][]Node)
 	for _, n := range m.Nodes {
-		if n.ResourceType != "model" {
+		if n.ResourceType != "model" && n.ResourceType != "seed" {
 			continue
 		}
 		groupName := n.GroupName()
@@ -120,7 +126,7 @@ func (m *WritableManifest) SourcesToMermaidFC(b *strings.Builder) {
 	}
 	for name, sources := range sourceGroups {
 
-		b.WriteString(fmt.Sprintf("    subgraph %v_[%v]\n", name))
+		b.WriteString(fmt.Sprintf("    subgraph %v_[%v]\n", name, name))
 		var sourceNameList []string
 
 		for _, s := range sources {
@@ -132,7 +138,10 @@ func (m *WritableManifest) SourcesToMermaidFC(b *strings.Builder) {
 		}
 		b.WriteString("    end\n")
 		b.WriteString(
-			fmt.Sprintf("    style %v fill:#FFF1E6,stroke:#333,stroke-width:1px\n", name),
+			fmt.Sprintf(
+				"    style %v_ fill:#FFF1E6,stroke:#333,stroke-width:1px\n",
+				name,
+			),
 		)
 	}
 }
@@ -159,8 +168,16 @@ func (n *Node) IsProductNode() bool {
 	return false
 }
 func (n *Node) ModelToMermaidFC(b *strings.Builder, tests map[string]bool) {
+	if _, exists := exclusions[n.PackageName]; exists {
+		return
+	}
+	for _, t := range n.Tags {
+		if _, exists := exclusions[t]; exists {
+			return
+		}
+	}
 	id := ToMermaidId(n.UniqueID)
-	modelName := n.Name
+	modelName := "**" + n.Name + "**"
 	modelClass := "model"
 	if _, exists := tests[id]; !exists {
 		modelClass = "modelError"
@@ -171,7 +188,31 @@ func (n *Node) ModelToMermaidFC(b *strings.Builder, tests map[string]bool) {
 		modelName = fmt.Sprintf("fa:fa-layer-group %v", modelName)
 	} else if n.Config.Materialized == "view" {
 		modelName = fmt.Sprintf("fa:fa-eye %v", modelName)
+	} else if n.Config.Materialized == "seed" {
+		modelClass = "modelSeed"
+		fmt.Printf("seed %v\n", modelName)
+		fmt.Printf(
+			"    %v@{ shape: doc, label: \"fa:fa-file %v\" }:::%v\n",
+			id,
+			modelName,
+			modelClass,
+		)
+		b.WriteString(fmt.Sprintf(
+			"    %v@{ shape: doc, label: \"%v\" }\n",
+			id,
+			modelName,
+		))
+		return
 	}
+	if n.Description != "" {
+		modelName = fmt.Sprintf("%v\n%v", modelName, n.Description)
+	}
+	if len(n.Tags) > 0 {
+		tags := strings.Join(n.Tags, ", #")
+		modelName = fmt.Sprintf("%v\n*#%v*", modelName, tags)
+	}
+	modelName = fmt.Sprintf("\"`%v`\"", modelName)
+
 	if n.IsProductNode() {
 
 		if modelClass == "modelError" {
@@ -189,6 +230,9 @@ func (n *Node) ModelToMermaidFC(b *strings.Builder, tests map[string]bool) {
 }
 func (n *Node) RefsToMermaidFC(b *strings.Builder) {
 	visited := make(map[string]interface{})
+	if _, exists := exclusions[n.PackageName]; exists {
+		return
+	}
 	for _, d := range n.DependsOn.Nodes {
 		sourceId := d
 		if cId, ok := idDict[sourceId]; ok {
