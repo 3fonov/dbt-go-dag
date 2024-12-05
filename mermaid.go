@@ -11,7 +11,7 @@ var exclusions map[string]struct{}
 func (m *WritableManifest) CreateMermaidFCGraph() string {
 	exclusions = map[string]struct{}{
 		"dbt_project_evaluator": {},
-		"skip":                  {},
+		"dag_skip":              {},
 	}
 
 	idDict = make(map[string]string, 0)
